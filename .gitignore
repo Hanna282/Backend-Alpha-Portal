@@ -364,3 +364,9 @@ FodyWeavers.xsd
 
 appsettings.json
 wwwroot/
+
+*.pubxml
+*.publishsettings
+*.arm.json
+*/Web Deploy/
+Properties/PublishProfiles/
