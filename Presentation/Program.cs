@@ -83,9 +83,10 @@ builder.Services.AddIdentity<UserEntity, IdentityRole>(x =>
 .AddEntityFrameworkStores<DataContext>()
 .AddDefaultTokenProviders();
 
-var localFilePath = Path.Combine(builder.Environment.WebRootPath, "images");
-builder.Services.AddScoped(_ => new ImageHandler(localFilePath));
+var connectionString = builder.Configuration.GetConnectionString("AzureBlobStorage");
+var containerName = "images";
 
+builder.Services.AddScoped<IFileHandler>(_ => new AzureFileHandler(connectionString!, containerName));
 builder.Services.AddScoped(typeof(ICacheHandler<>), typeof(CacheHandler<>));
 builder.Services.AddTransient<IJwtTokenHandler, JwtTokenHandler>();
 builder.Services.AddTransient<IFormValidator, FormValidator>();
@@ -129,7 +130,6 @@ var app = builder.Build();
 await SeedData.SetRolesAsync(app);
 
 app.UseHttpsRedirection();
-
 app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 
 app.UseSwagger();
@@ -143,8 +143,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapOpenApi();
-
-app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();

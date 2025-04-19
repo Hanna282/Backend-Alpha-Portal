@@ -20,15 +20,15 @@ namespace Business.Services
     }
 
     public class UserService(
-        IUserRepository userRepository, UserManager<UserEntity> userManager, IRoleService roleservice, 
-        ICacheHandler<IEnumerable<UserModel>> cacheHandler, IFormValidator formValidator, ImageHandler imageHandler) : IUserService
+        IUserRepository userRepository, UserManager<UserEntity> userManager, IRoleService roleservice,
+        ICacheHandler<IEnumerable<UserModel>> cacheHandler, IFormValidator formValidator, IFileHandler fileHandler) : IUserService
     {
         private readonly IUserRepository _userRepository = userRepository;
         private readonly UserManager<UserEntity> _userManager = userManager;
         private readonly IRoleService _roleService = roleservice;
         private readonly IFormValidator _formValidator = formValidator;
         private readonly ICacheHandler<IEnumerable<UserModel>> _cacheHandler = cacheHandler;
-        private readonly ImageHandler _imageHandler = imageHandler;
+        private readonly IFileHandler _fileHandler = fileHandler;
 
         private const string _cacheKey = "Users";
 
@@ -46,9 +46,9 @@ namespace Business.Services
 
                 var entity = UserFactory.ToEntity(form);
 
-                var fileName = await _imageHandler.UploadImageAsync(form.ImageFileName!);
-                if (!string.IsNullOrEmpty(fileName))
-                    entity.ImageFileName = fileName;
+                var imageFileUri = await _fileHandler.UploadFileAsync(form.ImageFileName!);
+                if (!string.IsNullOrEmpty(imageFileUri))
+                    entity.ImageFileName = imageFileUri;
 
                 var created = await _userManager.CreateAsync(entity);
                 if (!created.Succeeded)
@@ -181,9 +181,9 @@ namespace Business.Services
 
                 if (form.NewImageFileName != null && form.NewImageFileName.Length > 0)
                 {
-                    var newFileName = await _imageHandler.UploadImageAsync(form.NewImageFileName);
-                    if (!string.IsNullOrEmpty(newFileName))
-                        entity.ImageFileName = newFileName;
+                    var newImageFileUri = await _fileHandler.UploadFileAsync(form.NewImageFileName);
+                    if (!string.IsNullOrEmpty(newImageFileUri))
+                        entity.ImageFileName = newImageFileUri;
                 }
 
                 await _userManager.UpdateAsync(entity);

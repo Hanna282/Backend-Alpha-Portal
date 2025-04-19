@@ -18,13 +18,13 @@ namespace Business.Services
 
     public class ProjectService(
         IProjectRepository projectRepository, IStatusService statusService, ICacheHandler<IEnumerable<ProjectModel>> cacheHandler, 
-        IFormValidator formValidator, ImageHandler imageHandler) : IProjectService
+        IFormValidator formValidator, IFileHandler fileHandler) : IProjectService
     {
         private readonly IProjectRepository _projectRepository = projectRepository;
         private readonly IStatusService _statusService = statusService;
         private readonly IFormValidator _formValidator = formValidator;
         private readonly ICacheHandler<IEnumerable<ProjectModel>> _cacheHandler = cacheHandler;
-        private readonly ImageHandler _imageHandler = imageHandler;
+        private readonly IFileHandler _fileHandler = fileHandler;
 
         private const string _cacheKey = "Projects";
 
@@ -44,9 +44,9 @@ namespace Business.Services
                 else
                     throw new Exception(status.Message);
 
-                var fileName = await _imageHandler.UploadImageAsync(form.ImageFileName!);
-                if (!string.IsNullOrEmpty(fileName))
-                    entity.ImageFileName = fileName;
+                var imageFileUri = await _fileHandler.UploadFileAsync(form.ImageFileName!);
+                if (!string.IsNullOrEmpty(imageFileUri))
+                    entity.ImageFileName = imageFileUri;
 
                 var created = await _projectRepository.CreateAsync(entity);
                 if (!created)
@@ -145,9 +145,9 @@ namespace Business.Services
 
                 if (form.NewImageFileName != null && form.NewImageFileName.Length > 0)
                 {
-                    var newFileName = await _imageHandler.UploadImageAsync(form.NewImageFileName);
-                    if (!string.IsNullOrEmpty(newFileName))
-                        entity.ImageFileName = newFileName;
+                    var newImageFileUri = await _fileHandler.UploadFileAsync(form.NewImageFileName);
+                    if (!string.IsNullOrEmpty(newImageFileUri))
+                        entity.ImageFileName = newImageFileUri;
                 }
 
                 var updated = await _projectRepository.UpdateAsync(entity);
